@@ -1,0 +1,96 @@
+---
+title: "Analysis of Pima Indians Diabetes Dataset"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: consolent
+---
+
+# Student Details
+
+|                                              |     |
+|----------------------------------------------|-----|
+| **Team Name**                                |Team quatum|
+| **BBIT 4.2 Group**                           | B |
+| **BI Project Group Name/ID (if applicable)** | ... |
+
+# Setup Chunk
+
+**Note:** the following KnitR options have been set as the global defaults:  
+`knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy = TRUE)`.
+
+```{r setup, include=FALSE}
+library(formatR)
+knitr::opts_chunk$set(
+  warning = FALSE,
+  collapse = FALSE
+)
+```
+# Understanding the Dataset (Exploratory Data Analysis (EDA))
+## Loading the Dataset
+data(PimaIndiansDiabetes)
+dataset <- PimaIndiansDiabetes
+
+
+### Source:
+The dataset is provided in the mlbench package under the name PimaIndiansDiabetes.
+
+# Executable R code inside the various code chunks as guided by the lab work.
+
+
+
+###  Split the dataset
+set.seed(123)
+trainIndex <- createDataPartition(dataset$diabetes, p = 0.75, list = FALSE)
+trainData <- dataset[trainIndex, ]
+testData <- dataset[-trainIndex, ]
+
+
+###  Naive Bayes Training
+model_nb <- naiveBayes(diabetes ~ ., data = trainData)
+
+###  Linear Model Training
+model_lm <- train(diabetes ~ ., data = trainData, method = "glm", trControl = trainControl(method = "none"))
+
+###  Naive Bayes Testing
+predictions_nb <- predict(model_nb, testData)
+
+###  Linear Model Testing
+predictions_lm <- predict(model_lm, testData)
+
+
+###  Naive Bayes Evaluation
+confMatrix_nb <- confusionMatrix(predictions_nb, testData$diabetes)
+print(confMatrix_nb)
+
+###  Linear Model Evaluation
+confMatrix_lm <- confusionMatrix(predictions_lm, testData$diabetes)
+print(confMatrix_lm)
+
+
+
+###  k-fold Cross Validation for Linear Model
+trainControl <- trainControl(method = "cv", number = 10)
+model_lm_cv <- train(diabetes ~ ., data = trainData, method = "glm", trControl = trainControl)
+print(model_lm_cv)
+
+###  Leave One Out Cross Validation (LOOCV) for Naive Bayes
+trainControl <- trainControl(method = "LOOCV")
+model_nb_loocv <- train(diabetes ~ ., data = trainData, method = "naive_bayes", trControl = trainControl)
+print(model_nb_loocv)
+
+###  Repeated k-fold Cross Validation for Naive Bayes
+trainControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+model_nb_repeatedcv <- train(diabetes ~ ., data = trainData, method = "naive_bayes", trControl = trainControl)
+print(model_nb_repeatedcv)
+
+###  Bootstrapping for Naive Bayes
+trainControl <- trainControl(method = "boot", number = 500)
+model_nb_boot <- train(diabetes ~ ., data = trainData, method = "naive_bayes", trControl = trainControl)
+print(model_nb_boot)
+
